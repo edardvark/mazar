@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Riesgo de apagones: Mazar | Ecuanomía</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#EEF1FA; --panel:#E4E8F5; --ink:#1F2433; --ink2:#4A5060; --muted:#8A8F9C; --line:#C9CFDE;
+  --navy:#1B4F8A; --red:#B21E14; --orange:#D9772E; --chip:#FFFFFF; --chipOn:#1F2433; --chipOnInk:#FFFFFF;
+  box-sizing:border-box; padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:dark){ :root:not([data-theme="light"]){
+  --bg:#141824; --panel:#1C2130; --ink:#E9ECF5; --ink2:#B4BACB; --muted:#7E8496; --line:#2E3446;
+  --navy:#7FB0E8; --red:#F07A6E; --orange:#F0A764; --chip:#222838; --chipOn:#E9ECF5; --chipOnInk:#141824; } }
+:root[data-theme="dark"]{ --bg:#141824; --panel:#1C2130; --ink:#E9ECF5; --ink2:#B4BACB; --muted:#7E8496; --line:#2E3446;
+  --navy:#7FB0E8; --red:#F07A6E; --orange:#F0A764; --chip:#222838; --chipOn:#E9ECF5; --chipOnInk:#141824; }
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*,*::before,*::after{box-sizing:inherit}
+[hidden]{display:none!important}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:Inter,system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;font-size:16px;line-height:1.5;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1120px;margin:0 auto;padding:40px 24px 56px}
+header h1{font-size:clamp(1.7rem,3.6vw,2.5rem);line-height:1.12;letter-spacing:-.02em;font-weight:700;margin:0 0 10px;max-width:22ch}
+header p{margin:0;color:var(--ink2);font-size:1.05rem;max-width:62ch}
+.asof{margin-top:12px;color:var(--muted);font-size:.9rem}
+.grid{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(280px,1fr);gap:36px;margin-top:32px;align-items:start}
+@media (max-width:860px){.grid{grid-template-columns:1fr;gap:24px}}
+.mapbox{position:relative}
+.axis-title{font-weight:700;font-size:.85rem;margin:0 0 6px}
+canvas{display:block;width:100%;touch-action:pan-y}
+.legend{display:flex;flex-wrap:wrap;gap:6px 18px;margin-top:10px;font-size:.8rem;color:var(--ink2)}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.sw{width:22px;height:0;border-top:2.5px solid var(--ink)}
+.sw.proj{border-top:2.5px dashed var(--navy)} .sw.ghost{border-top:2px dashed var(--muted)}
+.dot{width:8px;height:8px;border-radius:50%;background:#7A1D15;opacity:.6}
+.ramp{display:flex;align-items:center;gap:0}
+.ramp i{display:block;width:16px;height:10px}
+aside{display:flex;flex-direction:column;gap:22px}
+.read{border-left:3px solid var(--ink);padding:2px 0 2px 16px}
+.read .when{font-size:.9rem;color:var(--ink2);margin:0}
+.read .big{font-size:3.2rem;font-weight:700;letter-spacing:-.03em;line-height:1.05;margin:4px 0 2px;font-variant-numeric:tabular-nums}
+.read .sub{margin:0;color:var(--ink2);font-size:.95rem;font-variant-numeric:tabular-nums}
+.ctrl h3{font-size:.95rem;margin:0 0 8px;font-weight:600}
+.ctrl .hint{font-size:.8rem;color:var(--muted);margin:6px 0 0}
+.seg{display:flex;flex-wrap:wrap;gap:6px}
+.seg button{font:inherit;font-size:.88rem;padding:7px 12px;border-radius:999px;border:1px solid var(--line);background:var(--chip);color:var(--ink);cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--chipOn);color:var(--chipOnInk);border-color:var(--chipOn)}
+.seg button:focus-visible,input[type=range]:focus-visible,.reset:focus-visible,summary:focus-visible{outline:2px solid var(--navy);outline-offset:2px}
+.slider label{display:flex;justify-content:space-between;font-weight:600;font-size:.95rem;margin-bottom:6px}
+.slider output{font-weight:500;color:var(--ink2);font-variant-numeric:tabular-nums}
+input[type=range]{width:100%;accent-color:var(--ink)}
+.reset{font:inherit;font-size:.85rem;background:none;border:none;color:var(--navy);padding:0;cursor:pointer;text-decoration:underline;text-underline-offset:3px;align-self:flex-start}
+.chart{margin-top:44px}
+.chart h2,.method h2{font-size:1.25rem;letter-spacing:-.01em;margin:0 0 4px}
+.chart p.dek{margin:0 0 12px;color:var(--ink2);font-size:.95rem}
+.method{margin-top:48px;max-width:70ch}
+.method details{border-top:1px solid var(--line);padding:14px 0}
+.method details:last-child{border-bottom:1px solid var(--line)}
+.method summary{cursor:pointer;font-weight:600}
+.method p{color:var(--ink2);margin:10px 0 0;font-size:.95rem}
+footer{margin-top:40px;display:flex;justify-content:space-between;color:var(--muted);font-size:.9rem}
+footer b{font-weight:700}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <h1>¿Hacia dónde va el riesgo de apagones?</h1>
+  <p>Mapa de riesgo del sistema hidroeléctrico según la cota y el caudal de Mazar. Cambia los supuestos para ver cómo podrían evolucionar las próximas seis semanas.</p>
+  <div class="asof" id="asof"></div>
+</header>
+
+<div class="grid">
+  <div class="mapbox">
+    <p class="axis-title">Cota (msnm)</p>
+    <canvas id="map" role="img" aria-label="Mapa de riesgo con la trayectoria de Mazar y la proyección del escenario elegido"></canvas>
+    <div class="legend">
+      <span><i class="sw"></i>Últimos 60 días</span>
+      <span><i class="sw proj"></i>Proyección del escenario</span>
+      <span id="lg-ghost" hidden><i class="sw ghost"></i>Escenario base</span>
+      <span><i class="dot"></i>Días con apagones (2023–24)</span>
+      <span class="ramp" aria-label="Probabilidad de 0 a 100%">0%&nbsp;<i style="background:#B9D6E0"></i><i style="background:#D9E3D6"></i><i style="background:#F6D3A1"></i><i style="background:#F3AE72"></i><i style="background:#EA6F55"></i><i style="background:#C8352C"></i>&nbsp;100%</span>
+    </div>
+  </div>
+
+  <aside>
+    <div class="read" aria-live="polite">
+      <p class="when" id="r-when"></p>
+      <div class="big" id="r-p"></div>
+      <p class="sub" id="r-sub"></p>
+    </div>
+
+    <div class="slider">
+      <label for="day">Ver el mapa en <output id="day-out" for="day"></output></label>
+      <input id="day" type="range" min="0" max="42" step="1" value="0">
+    </div>
+
+    <div class="ctrl">
+      <h3 id="h-rain">Lluvia en las próximas semanas</h3>
+      <div class="seg" role="group" aria-labelledby="h-rain" data-key="rain">
+        <button data-v="10">Seca</button><button data-v="50">Normal</button><button data-v="90">Lluviosa</button>
+      </div>
+      <p class="hint" id="hint-rain"></p>
+    </div>
+    <div class="ctrl">
+      <h3 id="h-dem">Demanda sobre el sistema hidroeléctrico</h3>
+      <div class="seg" role="group" aria-labelledby="h-dem" data-key="dem">
+        <button data-v="0">Se mantiene</button><button data-v="5">Baja 5%</button><button data-v="10">Baja 10%</button>
+      </div>
+      <p class="hint">Por ejemplo, con más desconexiones industriales o más generación térmica.</p>
+    </div>
+    <div class="ctrl">
+      <h3 id="h-col">Compra de energía a Colombia</h3>
+      <div class="seg" role="group" aria-labelledby="h-col" data-key="col">
+        <button data-v="0">No</button><button data-v="450">Sí, 450 MW</button>
+      </div>
+      <p class="hint">Hoy la importación es de unos 5 MW.</p>
+    </div>
+    <button class="reset" id="reset">Volver al escenario base</button>
+  </aside>
+</div>
+
+<section class="chart">
+  <h2>Probabilidad de apagones día a día</h2>
+  <p class="dek">Probabilidad de estar en apagones generalizados o de tenerlos en los 30 días siguientes, según el escenario elegido.</p>
+  <canvas id="pchart" role="img" aria-label="Probabilidad proyectada para las próximas seis semanas"></canvas>
+</section>
+
+<section class="method">
+  <h2>Cómo funciona</h2>
+  <details><summary>El mapa de riesgo</summary>
+    <p>Cada día entre 2022 y 2026 se marcó según si hubo apagones generalizados ese día o en los 30 días siguientes. Una regresión logística estima esa probabilidad con tres variables: la cota de Mazar, el caudal de ingreso (promedio de 7 días) y el caudal que suele llegar en los 30 días siguientes según la época del año. Por eso el fondo del mapa cambia cuando mueves la fecha. Las zonas sin datos históricos quedan en blanco.</p></details>
+  <details><summary>Cómo se proyecta la cota</summary>
+    <p>La cota sube o baja según la diferencia entre el agua que entra y la que se turbina. Con los datos de septiembre de 2026, Mazar está turbinando el equivalente a unos <span id="m-qout"></span> m³/s, y cada m³/s de diferencia mueve la cota cerca de <span id="m-k"></span> cm por día. Bajo 2.115 msnm se asume que CELEC reduce el turbinado a 35 m³/s, como ocurrió en 2023 y 2024 durante los racionamientos.</p></details>
+  <details><summary>Los supuestos de cada escenario</summary>
+    <p><b>Lluvia:</b> el caudal parte del valor actual y converge al caudal histórico de esas fechas: el percentil 10 (seca), la mediana (normal) o el percentil 90 (lluviosa). <b>Demanda e importación:</b> cada 10 MW que no tiene que cubrir el complejo Paute equivalen a turbinar cerca de 1 m³/s menos en Mazar. Una baja de 5% en la demanda son unos 220 MW; la interconexión con Colombia, hasta 450 MW.</p></details>
+  <details><summary>Limitaciones</summary>
+    <p>El modelo aprendió de solo tres crisis (2023, abril de 2024 y septiembre–diciembre de 2024). Cuando superó el 20% en el pasado, hubo apagones aproximadamente la mitad de las veces. Las proyecciones son escenarios, no pronósticos: no incluyen la operación real de Coca Codo, las térmicas ni las decisiones de CELEC más allá de los supuestos descritos.</p></details>
+</section>
+
+<footer><span>Fuente: Celec</span><b>Ecuanomía</b></footer>
+</div>
+
+<script>
+fetch('data.json',{cache:'no-cache'}).then(r=>{if(!r.ok) throw new Error(r.status); return r.json();}).then(main)
+  .catch(()=>{document.getElementById('asof').textContent='No se pudieron cargar los datos. Recarga la página en unos minutos.';});
+function avisarAltura(){ if(window.parent!==window) window.parent.postMessage({alto:document.documentElement.scrollHeight},'*'); }
+if('ResizeObserver' in window) new ResizeObserver(avisarAltura).observe(document.body);
+function main(D){
+const MES=['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+const BANDS=[[0,'#B9D6E0'],[.05,'#D9E3D6'],[.10,'#F6D3A1'],[.25,'#F3AE72'],[.50,'#EA6F55'],[.75,'#C8352C']];
+const hexrgb=h=>[1,3,5].map(i=>parseInt(h.slice(i,i+2),16));
+const BRGB=BANDS.map(b=>hexrgb(b[1]));
+const DEFAULT={rain:'50',dem:'0',col:'0'};
+let S={...DEFAULT}, DAY=0;
+const fmt=(x,d=1)=>x.toLocaleString('es-EC',{minimumFractionDigits:d,maximumFractionDigits:d});
+const parseD=s=>{const [y,m,d]=s.split('-').map(Number);return new Date(Date.UTC(y,m-1,d));};
+const addDays=(dt,n)=>new Date(dt.getTime()+n*864e5);
+const doyOf=dt=>Math.min(365,Math.floor((dt-Date.UTC(dt.getUTCFullYear(),0,1))/864e5)+1);
+const dLabel=dt=>`${dt.getUTCDate()} ${MES[dt.getUTCMonth()]}`;
+const sig=z=>1/(1+Math.exp(-z));
+const M=D.model;
+const prob=(c,q7,doy)=>sig(M.a+M.bc*c+M.bq*Math.log(Math.max(q7,1))+M.be*Math.log(D.exp30[doy-1]));
+
+const H=D.hist, last=H[H.length-1], T0=parseD(last.d), doy0=doyOf(T0);
+
+function simulate(s){
+  const out=[]; let c=last.c; const qs=H.slice(-6).map(h=>h.q);
+  const clim=D.clim[s.rain], med=D.clim['50'];
+  const anom0=last.q-med[doy0-1];
+  const qoutBase=Math.max(20,D.qout-(+s.dem/100*4400)/10-(+s.col)/10);
+  out.push({t:0,date:T0,c:last.c,q:last.q,q7:last.q7,p:prob(last.c,last.q7,doy0)});
+  for(let t=1;t<=42;t++){
+    const dt=addDays(T0,t), dy=doyOf(dt);
+    const qin=Math.max(3,clim[dy-1]+anom0*Math.pow(.8,t));
+    const qout=c<2115?Math.min(qoutBase,35):qoutBase;
+    c=Math.min(2153,Math.max(2100,c+D.k*(qin-qout)/100));
+    qs.push(qin); const q7=qs.slice(-7).reduce((a,b)=>a+b,0)/7;
+    out.push({t,date:dt,c,q:qin,q7,p:prob(c,q7,dy)});
+  }
+  return out;
+}
+
+/* ---------- map ---------- */
+const mapC=document.getElementById('map'), pC=document.getElementById('pchart');
+const X0=Math.log(5),X1=Math.log(400),Y0=2104,Y1=2160;
+const G=D.grid, MASK=G.mask;
+function maskAt(c,lq){const i=Math.round((c-G.c0)/(G.c1-G.c0)*(G.nc-1)), j=Math.round((lq-G.lq0)/(G.lq1-G.lq0)*(G.nq-1));
+  if(i<0||j<0||i>=G.nc||j>=G.nq) return false; return MASK[i*G.nq+j]==='1';}
+let bgCache={key:null,img:null};
+function css(v){return getComputedStyle(document.documentElement).getPropertyValue(v).trim();}
+
+function drawMap(sim,ghost){
+  const dpr=window.devicePixelRatio||1, W=mapC.clientWidth, Hh=Math.min(Math.round(W*.88),640);
+  mapC.style.height=Hh+'px'; mapC.width=Math.round(W*dpr); mapC.height=Math.round(Hh*dpr);
+  const ctx=mapC.getContext('2d'); ctx.setTransform(dpr,0,0,dpr,0,0);
+  const pad={l:44,r:12,t:6,b:46}, w=W-pad.l-pad.r, h=Hh-pad.t-pad.b;
+  const sx=q=>pad.l+(Math.log(q)-X0)/(X1-X0)*w, sy=c=>pad.t+(Y1-c)/(Y1-Y0)*h;
+  const sel=sim[DAY], dy=doyOf(sel.date);
+  const key=[W,Hh,dpr,dy].join('|');
+  if(bgCache.key!==key){
+    const pw=Math.round(w*dpr), ph=Math.round(h*dpr), img=ctx.createImageData(pw,ph), A=img.data;
+    const ex=M.be*Math.log(D.exp30[dy-1]);
+    for(let y=0;y<ph;y++){const c=Y1-(y+.5)/ph*(Y1-Y0);
+      for(let x=0;x<pw;x++){const lq=X0+(x+.5)/pw*(X1-X0); const k=(y*pw+x)*4;
+        if(!maskAt(c,lq)){A[k+3]=0;continue;}
+        const p=sig(M.a+M.bc*c+M.bq*lq+ex); let b=0; for(let i=BANDS.length-1;i>=0;i--) if(p>=BANDS[i][0]){b=i;break;}
+        const rgb=BRGB[b]; A[k]=rgb[0];A[k+1]=rgb[1];A[k+2]=rgb[2];A[k+3]=240;}}
+    const off=document.createElement('canvas'); off.width=pw; off.height=ph; off.getContext('2d').putImageData(img,0,0);
+    bgCache={key,img:off};
+  }
+  ctx.clearRect(0,0,W,Hh);
+  ctx.drawImage(bgCache.img,pad.l,pad.t,w,h);
+  const ink=css('--ink'), muted=css('--muted'), navy=css('--navy');
+  // grid labels
+  ctx.font='12px Inter, system-ui, sans-serif'; ctx.fillStyle=muted; ctx.textAlign='right'; ctx.textBaseline='middle';
+  for(let c=2110;c<=2160;c+=10){ctx.fillText(c.toLocaleString('es-EC'),pad.l-8,sy(c));}
+  ctx.textAlign='center'; ctx.textBaseline='top';
+  ctx.strokeStyle=muted; ctx.lineWidth=1; ctx.beginPath(); ctx.moveTo(pad.l,pad.t+h+.5); ctx.lineTo(pad.l+w,pad.t+h+.5); ctx.stroke();
+  [5,10,20,50,100,200,400].forEach(q=>{const x=sx(q); ctx.beginPath(); ctx.moveTo(x,pad.t+h);ctx.lineTo(x,pad.t+h+4);ctx.stroke(); ctx.fillText(q,x,pad.t+h+7);});
+  ctx.fillStyle=ink; ctx.font='700 13px Inter, system-ui, sans-serif'; ctx.fillText('Caudal (m³/s, promedio 7 días)',pad.l+w/2,pad.t+h+26);
+  // critical line
+  ctx.save(); ctx.setLineDash([3,3]); ctx.strokeStyle=ink; ctx.globalAlpha=.6; ctx.beginPath(); ctx.moveTo(pad.l,sy(2115)); ctx.lineTo(pad.l+w,sy(2115)); ctx.stroke(); ctx.restore();
+  ctx.font='11px Inter, system-ui, sans-serif'; ctx.fillStyle=ink; ctx.textAlign='right'; ctx.textBaseline='bottom'; ctx.fillText('Cota crítica 2.115',pad.l+w-2,sy(2115)-3);
+  // zone labels
+  ctx.font=`700 ${W<520?13:15}px Inter, system-ui, sans-serif`; ctx.textAlign='right'; ctx.textBaseline='middle';
+  ctx.fillStyle=navy; ctx.fillText('Zona segura',pad.l+w-4,sy(2141));
+  ctx.fillStyle=css('--red'); ctx.fillText('Zona de apagones',pad.l+w-4,sy(2106.6));
+  // past blackout days
+  ctx.fillStyle='rgba(122,29,21,.45)'; D.ep.forEach(e=>{ if(e.q7<5) return; ctx.beginPath(); ctx.arc(sx(e.q7),sy(e.c),1.6,0,7); ctx.fill();});
+  // history
+  const hist=H.slice(-60);
+  ctx.lineJoin='round'; ctx.lineCap='round';
+  ctx.strokeStyle=ink; ctx.lineWidth=2.2; ctx.beginPath(); hist.forEach((p,i)=>{const x=sx(p.q7),y=sy(p.c); i?ctx.lineTo(x,y):ctx.moveTo(x,y);}); ctx.stroke();
+  // ghost
+  if(ghost){ctx.save(); ctx.setLineDash([5,5]); ctx.strokeStyle=muted; ctx.lineWidth=1.8; ctx.beginPath(); ghost.forEach((p,i)=>{const x=sx(Math.max(5,p.q7)),y=sy(p.c); i?ctx.lineTo(x,y):ctx.moveTo(x,y);}); ctx.stroke(); ctx.restore();}
+  // projection
+  ctx.save(); ctx.setLineDash([6,5]); ctx.strokeStyle=navy; ctx.lineWidth=2.4; ctx.beginPath(); sim.forEach((p,i)=>{const x=sx(Math.max(5,p.q7)),y=sy(p.c); i?ctx.lineTo(x,y):ctx.moveTo(x,y);}); ctx.stroke(); ctx.restore();
+  // today marker
+  const t0=sim[0]; ctx.fillStyle=ink; ctx.beginPath(); ctx.arc(sx(t0.q7),sy(t0.c),4,0,7); ctx.fill();
+  // selected
+  const x=sx(Math.max(5,sel.q7)), y=sy(sel.c);
+  ctx.fillStyle=DAY?navy:ink; ctx.strokeStyle=css('--bg'); ctx.lineWidth=2; ctx.beginPath(); ctx.arc(x,y,7,0,7); ctx.fill(); ctx.stroke();
+  ctx.font='700 17px Inter, system-ui, sans-serif'; ctx.fillStyle=DAY?navy:ink; ctx.textBaseline='middle';
+  const lbl=dLabel(sel.date), tw=ctx.measureText(lbl).width;
+  ctx.textBaseline='bottom'; if(x+14+tw>pad.l+w){ctx.textAlign='right'; ctx.fillText(lbl,x-10,y-6);} else {ctx.textAlign='left'; ctx.fillText(lbl,x+10,y-6);}
+}
+
+/* ---------- probability chart ---------- */
+function drawP(sim,ghost){
+  const dpr=window.devicePixelRatio||1, W=pC.clientWidth, Hh=230;
+  pC.style.height=Hh+'px'; pC.width=Math.round(W*dpr); pC.height=Math.round(Hh*dpr);
+  const ctx=pC.getContext('2d'); ctx.setTransform(dpr,0,0,dpr,0,0); ctx.clearRect(0,0,W,Hh);
+  const pad={l:44,r:16,t:10,b:30}, w=W-pad.l-pad.r, h=Hh-pad.t-pad.b;
+  const sx=t=>pad.l+t/42*w, sy=p=>pad.t+(1-p)*h;
+  const ink=css('--ink'), muted=css('--muted'), navy=css('--navy'), line=css('--line');
+  ctx.font='12px Inter, system-ui, sans-serif'; ctx.textAlign='right'; ctx.textBaseline='middle';
+  [0,.25,.5,.75,1].forEach(p=>{ctx.strokeStyle=line; ctx.lineWidth=1; ctx.beginPath(); ctx.moveTo(pad.l,sy(p)+.5); ctx.lineTo(pad.l+w,sy(p)+.5); ctx.stroke(); ctx.fillStyle=muted; ctx.fillText(Math.round(p*100)+'%',pad.l-8,sy(p));});
+  ctx.textAlign='center'; ctx.textBaseline='top'; ctx.fillStyle=muted;
+  for(let t=0;t<=42;t+=7){ctx.textAlign=t===0?'left':(t===42?'right':'center'); ctx.fillText(t?dLabel(sim[t].date):dLabel(sim[0].date),sx(t),pad.t+h+8);}
+  if(ghost){ctx.save(); ctx.setLineDash([5,5]); ctx.strokeStyle=muted; ctx.lineWidth=1.8; ctx.beginPath(); ghost.forEach((p,i)=>{i?ctx.lineTo(sx(i),sy(p.p)):ctx.moveTo(sx(i),sy(p.p));}); ctx.stroke(); ctx.restore();}
+  ctx.strokeStyle=navy; ctx.lineWidth=2.6; ctx.lineJoin='round'; ctx.beginPath(); sim.forEach((p,i)=>{i?ctx.lineTo(sx(i),sy(p.p)):ctx.moveTo(sx(i),sy(p.p));}); ctx.stroke();
+  const s=sim[DAY]; ctx.strokeStyle=ink; ctx.globalAlpha=.35; ctx.beginPath(); ctx.moveTo(sx(DAY),pad.t); ctx.lineTo(sx(DAY),pad.t+h); ctx.stroke(); ctx.globalAlpha=1;
+  ctx.fillStyle=navy; ctx.beginPath(); ctx.arc(sx(DAY),sy(s.p),5,0,7); ctx.fill();
+}
+
+/* ---------- UI ---------- */
+const pct=p=>p<.01?'<1%':Math.round(p*100)+'%';
+function daysTo(sim,lvl){const i=sim.findIndex(p=>p.c<=lvl); return i<0?null:i;}
+function render(){
+  const sim=simulate(S), isDef=Object.keys(DEFAULT).every(k=>S[k]===DEFAULT[k]), ghost=isDef?null:simulate(DEFAULT);
+  document.getElementById('lg-ghost').hidden=isDef;
+  const s=sim[DAY];
+  document.getElementById('day-out').textContent=DAY?`${dLabel(s.date)} (+${DAY} días)`:`${dLabel(s.date)} (último dato)`;
+  document.getElementById('r-when').textContent=DAY?`Probabilidad estimada para el ${dLabel(s.date)}`:`Probabilidad al ${dLabel(s.date)}, último dato disponible`;
+  document.getElementById('r-p').textContent=pct(s.p);
+  const dt=daysTo(sim,2115);
+  let sub=`Cota ${fmt(s.c)} msnm · caudal ${fmt(s.q7)} m³/s.`;
+  sub+= dt===null?' En este escenario, Mazar no llega a la cota crítica en seis semanas.':(dt===0?' Mazar está bajo la cota crítica.':` Llega a la cota crítica en ${dt} días (${dLabel(sim[dt].date)}).`);
+  document.getElementById('r-sub').textContent=sub;
+  drawMap(sim,ghost); drawP(sim,ghost);
+}
+document.querySelectorAll('.seg').forEach(g=>{
+  const key=g.dataset.key;
+  g.querySelectorAll('button').forEach(b=>{b.addEventListener('click',()=>{S[key]=b.dataset.v; sync(); render();});});
+});
+function sync(){document.querySelectorAll('.seg').forEach(g=>{const k=g.dataset.key; g.querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.v===S[k])));});
+  const hr={'10':'Como el 10% de los años más secos para estas fechas.','50':'El caudal típico de estas fechas, partiendo del valor actual.','90':'Como el 10% de los años más lluviosos para estas fechas.'};
+  document.getElementById('hint-rain').textContent=hr[S.rain];}
+document.getElementById('day').addEventListener('input',e=>{DAY=+e.target.value; render();});
+document.getElementById('reset').addEventListener('click',()=>{S={...DEFAULT}; sync(); render();});
+document.getElementById('asof').textContent=`Datos de CELEC al ${dLabel(T0)} de ${T0.getUTCFullYear()}.`;
+document.getElementById('m-qout').textContent=fmt(D.qout,0); document.getElementById('m-k').textContent=fmt(D.k,1);
+let rt; window.addEventListener('resize',()=>{clearTimeout(rt); rt=setTimeout(render,120);});
+window.matchMedia('(prefers-color-scheme: dark)').addEventListener?.('change',render);
+sync(); render(); document.fonts?.ready.then(render); avisarAltura();
+}
+</script>
+</body>
+</html>
