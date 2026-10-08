@@ -8,6 +8,10 @@ on:
 permissions:
   contents: write
 
+concurrency:
+  group: actualizar-mazar
+  cancel-in-progress: false
+
 jobs:
   actualizar:
     runs-on: ubuntu-latest
@@ -25,5 +29,7 @@ jobs:
           git config user.name "ecuanomia-bot"
           git config user.email "actions@users.noreply.github.com"
           git add data/celec_mazar.csv data.json
-          git diff --cached --quiet || git commit -m "Datos de Mazar al $(date -u +%F)"
+          git diff --cached --quiet && exit 0
+          git commit -m "Datos de Mazar al $(date -u +%F)"
+          git pull --rebase origin main
           git push
